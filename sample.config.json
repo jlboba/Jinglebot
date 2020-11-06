@@ -1,0 +1,6 @@
+{
+    "token": /* discord bot token */ ,
+    "mongoUser": /* mongo db atlas connection string */,
+    "prefix": /* prefix bot will listen to for commands */ ,
+    "ownerID": /* owner of the bot's 18-digit discord id */
+}
