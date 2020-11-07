@@ -6,6 +6,7 @@ const Discord = require('discord.js')
 const config = require('./config.json')
 const mongoose = require('mongoose')
 const fs = require('fs')
+require('dotenv').config()
 
 // DISCORD CLIENT
 const client = new Discord.Client()
@@ -17,7 +18,7 @@ client.config = config
 // ================
 // MONGO CONNECTION
 // ================
-const uri = config.mongoURI
+const uri = process.env.MONGO_URI
 const db = mongoose.connection
 
 mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true })
@@ -86,4 +87,4 @@ fs.readdir("./commands/", (err, folders) => {
 // ================
 // LOGIN
 // ================
-client.login(config.token)
+client.login(process.env.TOKEN)

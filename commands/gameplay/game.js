@@ -1,8 +1,7 @@
 // ==================
 // DEPENDENCIES
 // ==================
-const axios = require('axios');
-const config = require('../../config')
+const axios = require('axios')
 const villagers = require('../../data/villagersSample')
 
 // ==================
@@ -16,22 +15,22 @@ module.exports.run = async (client) => {
     setInterval(async () => {
         // get a random villager 
         let randomVillager = villagers[Math.floor(Math.random() * villagers.length)]
-        let vilPersonality  
-        let vilImage
+        let villagerData
 
         // api call to get image and personality 
-        await axios.get('http://acnhapi.com/v1/villagers/1').then(vilData => {
-            vilPersonality = vilData.data.personality.toLowerCase()
-            vilImage = vilData.data.image_uri
+        await axios.get(`https://api.nookipedia.com/villagers?name=${randomVillager.name}`, {
+            headers: { 'X-API-KEY': process.env.NOOKIPEDIA_KEY }
+        }).then(vilData => {
+            villagerData = vilData.data[0]
         })
         
         // create the embed 
         embedOptions = {
-            color: config.personalityColors[vilPersonality],
-            title: `🎁  ${randomVillager.name} wants a gift!`,
-            description: `Jingle's not sure what kind of gift **${randomVillager.name}** wants. Can you help him? \nReact to the color you think **${randomVillager.name}** likes best!`,
+            color: `0x${villagerData.title_color}`,
+            title: `🎁  ${villagerData.name} wants a gift, ${villagerData.phrase}!`,
+            description: `Jingle's not sure what kind of gift **${villagerData.name} the ${villagerData.personality} ${villagerData.species}** wants.\n Can you help him? React to the color you think **${villagerData.name}** likes best!`,
             image: {
-                url: vilImage
+                url: villagerData.image_url
             }
         }
 
@@ -84,8 +83,8 @@ module.exports.run = async (client) => {
 
                     // edit the embed 
                     embedOptions.color = '0x84f542'
-                    embedOptions.title = `${randomColor.emoji}  ${randomVillager.name} has been gifted`
-                    embedOptions.description = `<@${gifter}> gifted **${randomVillager.name}**: ${randomGift}!`
+                    embedOptions.title = `${randomColor.emoji}  ${villagerData.name} has been gifted`
+                    embedOptions.description = `<@${gifter}> gifted **${villagerData.name}**: ${randomGift}!`
 
                     sentMessage.edit({ embed: embedOptions })
                 })
