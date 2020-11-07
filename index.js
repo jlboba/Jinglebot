@@ -31,6 +31,7 @@ db.on('open', () => {
 // ================
 client.on('ready', () => {
     console.log('\x1b[32m%s\x1b[0m','\n\n 🦌  Jinglebot ready to spread cheer! \n\n')
+    // set server
     const guild = client.guilds.cache.first()
     // set activity 
     client.user.setActivity(`with ${guild.memberCount} users! 🦌 `)
@@ -82,4 +83,7 @@ fs.readdir("./commands/", (err, folders) => {
     })
 })
 
+// ================
+// LOGIN
+// ================
 client.login(config.token)
