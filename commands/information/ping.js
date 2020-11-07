@@ -12,6 +12,6 @@ module.exports.run = async (client, msg, args) => {
 // ==================
 module.exports.help = {
     name: 'ping',
-    shortcuts: '',
+    shortcuts: 'none',
     details: `Check the bot's ping`
 }
