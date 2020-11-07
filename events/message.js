@@ -21,8 +21,8 @@ module.exports = (client, msg) => {
     let args = msg.content.slice(config.prefix.length).trim().split(/ +/g)
     const command = args.shift().toLowerCase()
 
-    // if no command following the prefix, silently return
-    if(!command) return
+    // if no command following the prefix or the game command, silently return
+    if(!command || command == 'game') return
 
     // set command
     const cmd = client.commands.find(commandKey => commandKey.commandName === command) || client.aliases.find(alias => alias.aliasName === command)

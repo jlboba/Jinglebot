@@ -17,7 +17,11 @@ module.exports.run = async (client, msg, args) => {
         client.playableChannel = args[0].replace(/\D/g, '')
     }
 
-    return msg.channel.send(`Successfully set <#${client.playableChannel}> as the playable channel!`)
+    msg.channel.send(`Successfully set <#${client.playableChannel}> as the playable channel!`)
+
+    let gameCmd = client.commands.find(commandKey => commandKey.commandName === 'game')
+
+    return gameCmd.props.run(client)
 }
 
 // ==================

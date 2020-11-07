@@ -2,7 +2,7 @@
 // DEPENDENCIES
 // ==================
 const Discord = require('discord.js')
-const data = require('../../data/test')
+const data = require('../../data/profileSample')
 
 // ==================
 // RUN
@@ -47,7 +47,7 @@ module.exports.run = (client, msg, args, originalEmbed) => {
                 return ['⬅️', '➡️'].includes(reaction.emoji.name) && !user.bot
             }
 
-            // reaction colelctor - will collect up to 60 seconds 
+            // reaction collector - will collect up to 60 seconds 
             const collector = sentMessage.createReactionCollector(filter, { time: 60000 })
 
             // when someone reacts 
