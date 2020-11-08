@@ -3,17 +3,12 @@
 // ================
 // PACKAGES
 const Discord = require('discord.js') 
-const config = require('./config.json')
 const mongoose = require('mongoose')
 const fs = require('fs')
 require('dotenv').config()
 
 // DISCORD CLIENT
 const client = new Discord.Client()
-client.config = config
-
-// DATABASE 
-// models here
 
 // ================
 // MONGO CONNECTION
@@ -38,7 +33,7 @@ client.on('ready', () => {
     // set activity 
     client.user.setActivity(`with ${guild.memberCount} users! 🦌 `)
     // set prefix 
-    client.prefix = config.prefix
+    client.prefix = process.env.PREFIX
 })
 
 // load all the events

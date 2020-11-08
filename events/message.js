@@ -1,13 +1,10 @@
 // ==================
-// DEPENDENCIES
-// ==================
-const Discord = require('discord.js')
-const config = require('../config')
-
+// RUN
+// ===================
 // on message
 module.exports = (client, msg) => {
     // break if no prefix  
-    if(!msg.content.toLowerCase().startsWith(config.prefix) || msg.author.bot) return
+    if(!msg.content.toLowerCase().startsWith(client.prefix) || msg.author.bot) return
 
     // if in dm's, return an error 
     if(!msg.guild) {
@@ -18,7 +15,7 @@ module.exports = (client, msg) => {
     if(msg.channel.id !== client.playableChannel && msg.author.id !== msg.guild.ownerID) return
 
     // get args 
-    let args = msg.content.slice(config.prefix.length).trim().split(/ +/g)
+    let args = msg.content.slice(client.prefix.length).trim().split(/ +/g)
     const command = args.shift().toLowerCase()
 
     // if no command following the prefix or the game command, silently return

@@ -119,7 +119,7 @@ module.exports.run = async (client) => {
                     sentMessage.edit({ embed: embedOptions })
                 })
             })
-    }, 10000);
+    }, 60000);
 }
 
 // ==================
@@ -141,7 +141,7 @@ module.exports.methods = {
         }, (err, createdUser) => { return createdUser })
     },
     updateUser: (foundUser, villager) => {
-        foundUser.gifted.push(villager)
+        foundUser.gifted.unshift(villager)
         foundUser.save()
     }
 }

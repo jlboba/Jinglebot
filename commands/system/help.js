@@ -21,7 +21,7 @@ module.exports.run = (client, msg, args) => {
             color: 0x89d67e,
             title: `Command  🦌  \`${cmd.commandName}\``,
             description:`
-                **Shortcuts:** ${cmd.props.help.shortcuts}\n
+                **Aliases:** ${cmd.props.help.shortcuts}\n
                 **Details:** ${cmd.props.help.details}
             `
         }

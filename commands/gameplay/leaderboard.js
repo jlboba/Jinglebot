@@ -48,13 +48,11 @@ module.exports.run = async (client, msg, args, originalEmbed, foundTop, original
 
     // find the user that called the leaderboard command if they're not in the top
     if(!asker) {
-        console.log('in not asker')
         await User.findOne({ discordId: msg.author.id }, (err, foundUser) => {
             let askerRank = `\`\`\`md\n None |   ${foundUser.gifted.length || 0}   | ${foundUser.username} (You)\`\`\``
             embedOptions.description += askerRank
         })
     } else {
-        console.log('in asker')
         let askerRank = `\`\`\`md\n ${asker.rank}.  |   ${asker.dbInfo.gifted.length || 0}   | ${asker.dbInfo.username} (You) \`\`\``
         embedOptions.description += askerRank
     }
@@ -107,11 +105,11 @@ module.exports.run = async (client, msg, args, originalEmbed, foundTop, original
 // CONFIG & HELP
 // ==================
 module.exports.conf = {
-    aliases: ['lb']
+    aliases: ['lb', 'scoreboard', 'sb']
 }
 
 module.exports.help = {
     name: 'leaderboard',
-    shortcuts: 'lb',
+    shortcuts: '`lb` `scoreboard` `sb`',
     details: `Check the current leaderboard ranking of who has gifted the most villagers`
 }
