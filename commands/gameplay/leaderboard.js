@@ -7,13 +7,13 @@ const User = require('../../models/user')
 // ==================
 // RUN
 // ==================
-module.exports.run = async (client, msg, args, originalEmbed) => {
+module.exports.run = async (client, msg, args, originalEmbed, foundTop) => {
     // find the page
     let page = args[0] || 1 
 
     // find the top 100
     let asker = false
-    const topGifters = await User.aggregate([
+    const topGifters = foundTop || await User.aggregate([
         { $addFields: { gifted_count: {$size: { "$ifNull": [ "$gifted", [] ] } } } }, 
         { $sort: {"gifted_count": -1} }, 
         { $limit: 100 }
@@ -88,10 +88,10 @@ module.exports.run = async (client, msg, args, originalEmbed) => {
                     // go backwards or forwards a page if possible, if not do nothing 
                     if(collectedReaction.emoji.name === '➡️' && topGifters.length > (((page - 1) * 10) + 1) + (currentPage.length - 1)) {
                         page += 1 
-                        lbCmd.props.run(client, msg, [page], sentMessage)
+                        lbCmd.props.run(client, msg, [page], sentMessage, topGifters)
                     } else if(collectedReaction.emoji.name === '⬅️' && page !== 1) { 
                         page -= 1 
-                        lbCmd.props.run(client, msg, [page], sentMessage)
+                        lbCmd.props.run(client, msg, [page], sentMessage, topGifters)
                     }
                 })
             })
