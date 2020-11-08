@@ -7,12 +7,12 @@ const User = require('../../models/user')
 // ==================
 // RUN
 // ==================
-module.exports.run = async (client, msg, args, originalEmbed, foundTop) => {
+module.exports.run = async (client, msg, args, originalEmbed, foundTop, originalAsker) => {
     // find the page
     let page = args[0] || 1 
 
     // find the top 100
-    let asker = false
+    let asker = originalAsker || false
     const topGifters = foundTop || await User.aggregate([
         { $addFields: { gifted_count: {$size: { "$ifNull": [ "$gifted", [] ] } } } }, 
         { $sort: {"gifted_count": -1} }, 
@@ -33,27 +33,29 @@ module.exports.run = async (client, msg, args, originalEmbed, foundTop) => {
     let currentPage = topGifters.slice((page - 1) * 10, page * 10)
 
     // create the leaderboard 
-    let codeBlock = '```md\n  Rank  |  Gifted  |  User                 \n=======================================\n'
+    let codeBlock = '```md\n Rank  |  Gifts  |  User                 \n===========================\n'
 
     await currentPage.forEach((gifter, i) => {
       // add each top 100 gifter 
-      codeBlock += `  ${ i+1 }.   |    ${gifter.gifted.length}    | ${gifter.username}\n`
+      codeBlock += `  ${ i+1 }.  |   ${gifter.gifted.length}   | ${gifter.username}\n`
       
       // check if the person that ran the command is in the top 100 
       if(msg.author.id === gifter.discordId) asker = { dbInfo: gifter, rank: i + 1 }
     })
 
-    codeBlock += '```'
+    codeBlock += '\n===========================\n```'
     embedOptions.description += codeBlock
 
     // find the user that called the leaderboard command if they're not in the top
     if(!asker) {
-        User.findOne({ discordId: msg.author.id }, (err, foundUser) => {
-            let askerRank = `\`\`\`diff\n+ None |    ${foundUser.gifted.length || 0}    | ${foundUser.username}\`\`\``
+        console.log('in not asker')
+        await User.findOne({ discordId: msg.author.id }, (err, foundUser) => {
+            let askerRank = `\`\`\`md\n None |   ${foundUser.gifted.length || 0}   | ${foundUser.username} (You)\`\`\``
             embedOptions.description += askerRank
         })
     } else {
-        let askerRank = `\`\`\`diff\n+ ${asker.rank}.   |    ${asker.dbInfo.gifted.length || 0}    | ${asker.dbInfo.username} (You) \`\`\``
+        console.log('in asker')
+        let askerRank = `\`\`\`md\n ${asker.rank}.  |   ${asker.dbInfo.gifted.length || 0}   | ${asker.dbInfo.username} (You) \`\`\``
         embedOptions.description += askerRank
     }
 
@@ -88,10 +90,10 @@ module.exports.run = async (client, msg, args, originalEmbed, foundTop) => {
                     // go backwards or forwards a page if possible, if not do nothing 
                     if(collectedReaction.emoji.name === '➡️' && topGifters.length > (((page - 1) * 10) + 1) + (currentPage.length - 1)) {
                         page += 1 
-                        lbCmd.props.run(client, msg, [page], sentMessage, topGifters)
+                        lbCmd.props.run(client, msg, [page], sentMessage, topGifters, asker)
                     } else if(collectedReaction.emoji.name === '⬅️' && page !== 1) { 
                         page -= 1 
-                        lbCmd.props.run(client, msg, [page], sentMessage, topGifters)
+                        lbCmd.props.run(client, msg, [page], sentMessage, topGifters, asker)
                     }
                 })
             })

@@ -13,7 +13,7 @@ module.exports.run = async (client) => {
     const giftChannel = client.channels.cache.find(channel => channel.id === client.playableChannel)
 
     // send a random villager every x minutes
-    setInterval(async () => {
+    client.enableGame = setInterval(async () => {
         // get a random villager 
         let randomVillager = villagers[Math.floor(Math.random() * villagers.length)]
         let villagerData
@@ -85,8 +85,9 @@ module.exports.run = async (client) => {
 
                 // when collector stops
                 collector.on('end', () => {
-                    console.log(gifter)
-
+                    // silently return if no reactors
+                    if(!gifter) return 
+                    
                     // select a random gift 
                     let randomGift = randomColor.gifts[Math.floor(Math.random() * randomColor.gifts.length)]
 
@@ -119,6 +120,13 @@ module.exports.run = async (client) => {
                 })
             })
     }, 10000);
+}
+
+// ==================
+// STOP GAME
+// ==================
+module.exports.stop = (client) => {
+    if(client.enableGame) clearInterval(client.enableGame)
 }
 
 // ==================
