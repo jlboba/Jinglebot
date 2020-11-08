@@ -66,8 +66,8 @@ module.exports.run = async (client) => {
                     return shuffledChoices.includes(reaction.emoji.name) && !user.bot
                 }
 
-                // reaction collector - will wait up to 20 seconds 
-                const collector = sentMessage.createReactionCollector(filter, { time: 20000 })
+                // reaction collector - will wait up to 60 seconds 
+                const collector = sentMessage.createReactionCollector(filter, { time: 60000 })
 
                 // when someone reacts 
                 collector.on('collect', async (collectedReaction, reactingUser) => {
