@@ -78,13 +78,15 @@ module.exports.run = async (client) => {
 
                     // when right color is clicked and user is not on cd, stop the collector
                     if(collectedReaction.emoji.name === randomColor.emoji && (!reactingUser.giftCooldown || reactingUser.giftCooldown < Date.now())) {
-                        gifter = reactingUser.id
+                        gifter = reactingUser
                         collector.stop()
                     }
                 })
 
                 // when collector stops
                 collector.on('end', () => {
+                    console.log(gifter)
+
                     // select a random gift 
                     let randomGift = randomColor.gifts[Math.floor(Math.random() * randomColor.gifts.length)]
 
@@ -97,12 +99,12 @@ module.exports.run = async (client) => {
                     }
 
                     // find the gifting user 
-                    User.findOne({ discordId: gifter }, (err, foundUser) => {
+                    User.findOne({ discordId: gifter.id }, (err, foundUser) => {
                         // if error, return 
                         if(err) return console.log('in error')
                         
                         // if gifter doesn't have an entry yet, create one 
-                        if(!foundUser) this.methods.createUser(gifter, giftedVillager)
+                        if(!foundUser) this.methods.createUser(gifter.id, `${gifter.username}#${gifter.discriminator}`, giftedVillager)
 
                         // if gifter has an entry, update their gifted array 
                         if(foundUser) this.methods.updateUser(foundUser, giftedVillager)
@@ -111,7 +113,7 @@ module.exports.run = async (client) => {
                     // edit the embed
                     embedOptions.color = '0x84f542'
                     embedOptions.title = `${randomColor.emoji}  ${villagerData.name} has been gifted, ${villagerData.phrase}!`
-                    embedOptions.description = `<@${gifter}> gifted **${villagerData.name}**: ${randomGift}!`
+                    embedOptions.description = `<@${gifter.id}> gifted **${villagerData.name}**: ${randomGift}!`
 
                     sentMessage.edit({ embed: embedOptions })
                 })
@@ -123,9 +125,10 @@ module.exports.run = async (client) => {
 // METHODS
 // ==================
 module.exports.methods = {
-    createUser: (userID, villager) => {
+    createUser: (userID, username, villager) => {
         User.create({
             discordId: userID,
+            username: username,
             gifted: [ villager ]
         }, (err, createdUser) => { return createdUser })
     },
