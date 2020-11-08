@@ -22,6 +22,7 @@ const uri = process.env.MONGO_URI
 const db = mongoose.connection
 
 mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true })
+mongoose.set('useCreateIndex', true)
 
 db.on('open', () => {
     console.log('conected to mongoose')

@@ -2,34 +2,59 @@
 // DEPENDENCIES
 // ==================
 const Discord = require('discord.js')
-const data = require('../../data/profileSample')
+const User = require('../../models/user')
 
 // ==================
 // RUN
 // ==================
-module.exports.run = (client, msg, args, originalEmbed) => {
+module.exports.run = async (client, msg, args, originalEmbed) => {
+    // find user's personality role if any
+    let personalityColor = 0x6fe3f2 // if none, color will default to a light blue
+    await msg.member.roles.cache.forEach(role => {
+        if(["Peppy", "Normal", "Snooty", "Uchi", "Smug", "Cranky", "Lazy", "Jock"].includes(role.name)) personalityColor = role.color 
+    })
+
     // find the page
     let page = args[0] || 1 
 
+    // find the user
+    let userData
+    await User.findOne({ discordId: msg.author.id }, (err, foundUser) => {
+        // if error or no user found, return error 
+        if(err || !foundUser) {
+            console.log('in error  / no found user ')
+            return userData = { error: "❄️ You have not gifted any villagers yet!" }
+        }
+
+        // otherwise return the user data 
+        return userData = foundUser
+    })
+
+    // if no user data, send the error message 
+    if(userData.error) return msg.channel.send(userData.error)
+
     // set the initial embed 
     const embedOptions = {
-        color: 0x6fe3f2,
+        color: personalityColor,
         title: `:christmas_tree: ${msg.author.username}'s Profile`,
         thumbnail: { url: msg.author.avatarURL() },
         description: `<@${msg.author.id}> has spread holiday cheer to the following villagers\n\n`
     }
 
     // slice the array to collect just the current page 
-    let currentPage = data.slice((page - 1) * 10, page * 10)
+    let currentPage = userData.gifted.slice((page - 1) * 10, page * 10)
     
     // loop through the current page of the user's gifted villagers and add them onto the description 
     currentPage.forEach(villager => {
-        embedOptions.description += `${villager.emoji} · \`${villager.dateGifted}\` · **${villager.name}** · ${villager.gift}\n`
+        // format the date 
+        let date = `${(villager.dateGifted.getMonth() + 1)}/${villager.dateGifted.getDate().toString().padStart(2, '0')}`
+        // add the villager to the desc
+        embedOptions.description += `${villager.emoji} · \`${date}\` · **${villager.name}** · ${villager.gift}\n`
     })
 
     // set the embed footer 
     embedOptions.footer = {
-        text: `Viewing villagers ${((page - 1) * 10) + 1} - ${(((page - 1) * 10) + 1) + (currentPage.length - 1)} of ${data.length}`
+        text: `Viewing villagers ${((page - 1) * 10) + 1} - ${(((page - 1) * 10) + 1) + (currentPage.length - 1)} of ${userData.gifted.length}`
     }
 
     // send the embed (on first run of the command) 
@@ -37,7 +62,7 @@ module.exports.run = (client, msg, args, originalEmbed) => {
         msg.channel.send({ embed: embedOptions })
         .then(sentMessage => {
             // if more than one page, react with arrows, if not silently return
-            if(data.length > 10) {
+            if(userData.gifted.length > 10) {
                 sentMessage.react('⬅️')
                 sentMessage.react('➡️')
             } else return
@@ -56,7 +81,7 @@ module.exports.run = (client, msg, args, originalEmbed) => {
                 let profileCmd = client.commands.find(commandKey => commandKey.commandName === 'profile')
 
                  // go backwards or forwards a page if possible, if not do nothing 
-                 if(collectedReaction.emoji.name === '➡️' && data.length > (((page - 1) * 10) + 1) + (currentPage.length - 1)) {
+                 if(collectedReaction.emoji.name === '➡️' && userData.gifted.length > (((page - 1) * 10) + 1) + (currentPage.length - 1)) {
                     page += 1 
                     profileCmd.props.run(client, msg, [page], sentMessage)
                  } else if(collectedReaction.emoji.name === '⬅️' && page !== 1) { 

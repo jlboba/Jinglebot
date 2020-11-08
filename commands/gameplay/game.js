@@ -2,6 +2,7 @@
 // DEPENDENCIES
 // ==================
 const axios = require('axios')
+const User = require('../../models/user')
 const villagers = require('../../data/villagersSample')
 
 // ==================
@@ -17,7 +18,7 @@ module.exports.run = async (client) => {
         let randomVillager = villagers[Math.floor(Math.random() * villagers.length)]
         let villagerData
 
-        // api call to get image and personality 
+        // api call to get extra villager data  
         await axios.get(`https://api.nookipedia.com/villagers?name=${randomVillager.name}`, {
             headers: { 'X-API-KEY': process.env.NOOKIPEDIA_KEY }
         }).then(vilData => {
@@ -31,7 +32,8 @@ module.exports.run = async (client) => {
             description: `Jingle's not sure what kind of gift **${villagerData.name} the ${villagerData.personality} ${villagerData.species}** wants.\n Can you help him? React to the color you think **${villagerData.name}** likes best!`,
             image: {
                 url: villagerData.image_url
-            }
+            },
+            footer: { text: 'Image provided by Nookipedia' }
         }
 
         // send the embed
@@ -53,7 +55,7 @@ module.exports.run = async (client) => {
                 let randomColor = randomVillager.colors[Math.floor(Math.random() * randomVillager.colors.length)]
                 shuffledChoices.push(randomColor.emoji)
 
-                // shuffle again lol 
+                // shuffle again
                 shuffledChoices.sort(() => .5 - Math.random())
 
                 // react to the message 
@@ -64,30 +66,71 @@ module.exports.run = async (client) => {
                     return shuffledChoices.includes(reaction.emoji.name) && !user.bot
                 }
 
-                // reaction collector - will collect up to 10 seconds 
-                const collector = sentMessage.createReactionCollector(filter, { time: 10000 })
+                // reaction collector - will wait up to 20 seconds 
+                const collector = sentMessage.createReactionCollector(filter, { time: 20000 })
 
                 // when someone reacts 
-                collector.on('collect', (collectedReaction, reactingUser) => {
-                    // stop the collector when the right color is first clicked and save the person's id
-                    if(collectedReaction.emoji.name === randomColor.emoji) {
+                collector.on('collect', async (collectedReaction, reactingUser) => {
+                    // when the wrong color is clicked, apply a 1min cooldown to the user 
+                    if(collectedReaction.emoji.name !== randomColor.emoji) {
+                        reactingUser.giftCooldown = Date.now() + 60000
+                    }
+
+                    // when right color is clicked and user is not on cd, stop the collector
+                    if(collectedReaction.emoji.name === randomColor.emoji && (!reactingUser.giftCooldown || reactingUser.giftCooldown < Date.now())) {
                         gifter = reactingUser.id
                         collector.stop()
                     }
                 })
 
                 // when collector stops
-                collector.on('end', collected => {
+                collector.on('end', () => {
                     // select a random gift 
                     let randomGift = randomColor.gifts[Math.floor(Math.random() * randomColor.gifts.length)]
 
-                    // edit the embed 
+                    // create the gifted villager object 
+                    let giftedVillager = {
+                        name: villagerData.name,
+                        emoji: randomColor.emoji,
+                        gift: randomGift,
+                        dateGifted: new Date()
+                    }
+
+                    // find the gifting user 
+                    User.findOne({ discordId: gifter }, (err, foundUser) => {
+                        // if error, return 
+                        if(err) return console.log('in error')
+                        
+                        // if gifter doesn't have an entry yet, create one 
+                        if(!foundUser) this.methods.createUser(gifter, giftedVillager)
+
+                        // if gifter has an entry, update their gifted array 
+                        if(foundUser) this.methods.updateUser(foundUser, giftedVillager)
+                    })
+
+                    // edit the embed
                     embedOptions.color = '0x84f542'
-                    embedOptions.title = `${randomColor.emoji}  ${villagerData.name} has been gifted`
+                    embedOptions.title = `${randomColor.emoji}  ${villagerData.name} has been gifted, ${villagerData.phrase}!`
                     embedOptions.description = `<@${gifter}> gifted **${villagerData.name}**: ${randomGift}!`
 
                     sentMessage.edit({ embed: embedOptions })
                 })
             })
     }, 10000);
+}
+
+// ==================
+// METHODS
+// ==================
+module.exports.methods = {
+    createUser: (userID, villager) => {
+        User.create({
+            discordId: userID,
+            gifted: [ villager ]
+        }, (err, createdUser) => { return createdUser })
+    },
+    updateUser: (foundUser, villager) => {
+        foundUser.gifted.push(villager)
+        foundUser.save()
+    }
 }
