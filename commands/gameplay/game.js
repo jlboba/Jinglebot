@@ -3,7 +3,12 @@
 // ==================
 const axios = require('axios')
 const User = require('../../models/user')
-const villagers = require('../../data/villagersSample')
+const villagers = require('../../data/villagers')
+const colors = require('../../data/colors')
+const items = require('../../data/items')
+
+// filter out just the tops 
+const tops = items.filter(item => item.sourceSheet === 'Tops' && item.seasonalAvailability === 'Winter')
 
 // ==================
 // RUN
@@ -15,55 +20,63 @@ module.exports.run = async (client) => {
     // send a random villager every x minutes
     client.enableGame = setInterval(async () => {
         // get a random villager 
-        let randomVillager = villagers[Math.floor(Math.random() * villagers.length)]
-        let villagerData
+        let villagerData = villagers[Math.floor(Math.random() * villagers.length)]
 
-        // api call to get extra villager data  
-        await axios.get(`https://api.nookipedia.com/villagers?name=${randomVillager.name}`, {
+        // api call to get extra villager data and image
+        await axios.get(`https://api.nookipedia.com/villagers?name=${villagerData.name}`, {
             headers: { 'X-API-KEY': process.env.NOOKIPEDIA_KEY }
         }).then(vilData => {
-            villagerData = vilData.data[0]
+            villagerData.transparentImage = vilData.data[0].image_url
+            villagerData.titleColor = vilData.data[0].title_color
         })
         
         // create the embed 
         embedOptions = {
-            color: `0x${villagerData.title_color}`,
-            title: `🎁  ${villagerData.name} wants a gift, ${villagerData.phrase}!`,
+            color: `0x${villagerData.titleColor}`,
+            title: `🎁  ${villagerData.name} wants a gift, ${villagerData.catchphrase}!`,
             description: `Jingle's not sure what kind of gift **${villagerData.name} the ${villagerData.personality} ${villagerData.species}** wants.\n Can you help him? React to the color you think **${villagerData.name}** likes best!`,
             image: {
-                url: villagerData.image_url
+                url: villagerData.transparentImage
             },
-            footer: { text: 'Image provided by Nookipedia' }
+            footer: { text: 'Image provided by Nookipedia. Data from ACNH Spreadsheet' }
         }
 
         // send the embed
         giftChannel.send({embed: embedOptions})
-            .then(sentMessage => {
-                const emojiChoices = ["❤️", "🧡", "💛", "💚", "💙", "💜", "💗", "🤍", "🤎", "🖤", "🌈"] // squares are white, brown 
+            .then(async sentMessage => {
+                let colorChoices = colors.slice()
+                let villColors = []
                 let gifter
 
-                // remove the 2 emojis that the villager likes 
-                randomVillager.colors.forEach(color => {
-                    let emojiId = emojiChoices.findIndex(emoji => emoji == color.emoji)
-                    emojiChoices.splice(emojiId, 1)
+                // remove the 2 colors that the villager likes 
+                await villagerData.colors.forEach((color) => {
+                    let colorId = colorChoices.findIndex(colorData => color == colorData.color)
+                    if(colorId >= 0) {
+                        villColors.push(colorChoices[colorId])
+                        colorChoices.splice(colorId, 1)
+                    }
                 })
 
-                // shuffle the array and slice the first two
-                let shuffledChoices = emojiChoices.sort(() => .5 - Math.random()).slice(0, 2) 
-
+                // shuffle the array and slice the first two 
+                colorChoices = await colorChoices.sort(() => .5 - Math.random()).slice(0, 2)
+                
                 // add a random emoji the villager likes 
-                let randomColor = randomVillager.colors[Math.floor(Math.random() * randomVillager.colors.length)]
-                shuffledChoices.push(randomColor.emoji)
+                let randomColor = villColors[Math.floor(Math.random() * villColors.length)]
+                colorChoices.push(randomColor)
 
                 // shuffle again
-                shuffledChoices.sort(() => .5 - Math.random())
+                await colorChoices.sort(() => .5 - Math.random())
 
                 // react to the message 
-                shuffledChoices.forEach(emoji => sentMessage.react(emoji))
+                let emojiFilter = []
+                await colorChoices.forEach(color => {
+                    sentMessage.react(color.emoji)
+                    emojiFilter.push(color.emoji)
+                })
 
-                 // filter for checking reactions  
+                // filter for checking reactions  
                 const filter = (reaction, user) => {
-                    return shuffledChoices.includes(reaction.emoji.name) && !user.bot
+                    return emojiFilter.includes(reaction.emoji.name) && !user.bot
                 }
 
                 // reaction collector - will wait up to 60 seconds 
@@ -71,7 +84,7 @@ module.exports.run = async (client) => {
 
                 // when someone reacts 
                 collector.on('collect', async (collectedReaction, reactingUser) => {
-                    // when the wrong color is clicked, apply a 1min cooldown to the user 
+                    // when the wrong color is clicked, apply a 1min cooldown to the user so they can't just spam click all colors
                     if(collectedReaction.emoji.name !== randomColor.emoji) {
                         reactingUser.giftCooldown = Date.now() + 60000
                     }
@@ -84,12 +97,14 @@ module.exports.run = async (client) => {
                 })
 
                 // when collector stops
-                collector.on('end', () => {
+                collector.on('end', async () => {
                     // silently return if no reactors
                     if(!gifter) return 
                     
                     // select a random gift 
-                    let randomGift = randomColor.gifts[Math.floor(Math.random() * randomColor.gifts.length)]
+                    await tops.sort(() => .5 - Math.random()).slice(0, 2)
+                    let randomGift = this.methods.getGift(tops, randomColor.color)
+                    console.log(randomGift)
 
                     // create the gifted villager object 
                     let giftedVillager = {
@@ -113,13 +128,14 @@ module.exports.run = async (client) => {
 
                     // edit the embed
                     embedOptions.color = '0x84f542'
-                    embedOptions.title = `${randomColor.emoji}  ${villagerData.name} has been gifted, ${villagerData.phrase}!`
-                    embedOptions.description = `<@${gifter.id}> gifted **${villagerData.name}**: ${randomGift}!`
+                    embedOptions.title = `${randomColor.emoji}  ${villagerData.name} has been gifted, ${villagerData.catchphrase}!`
+                    embedOptions.description = `<@${gifter.id}> gifted **${villagerData.name}**: ${randomGift.name}!`
+                    embedOptions.image = { url: randomGift.image }
 
                     sentMessage.edit({ embed: embedOptions })
                 })
             })
-    }, 60000);
+    }, 10000);
 }
 
 // ==================
@@ -133,6 +149,17 @@ module.exports.stop = (client) => {
 // METHODS
 // ==================
 module.exports.methods = {
+    getGift: (tops, favColor) => {
+        // find random gift 
+        const gift = tops.find(top => top.variants.some(variant => variant.colors.includes(favColor)))
+        // find the exact variant 
+        const giftVariant = gift.variants.find(variant => variant.colors.includes(favColor))
+        // return the relevant info
+        return {
+            name: `${favColor} ${gift.name}`,
+            image: giftVariant.closetImage
+        }
+    },
     createUser: (userID, username, villager) => {
         User.create({
             discordId: userID,
