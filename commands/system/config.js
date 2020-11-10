@@ -27,7 +27,7 @@ module.exports.run = async (client, msg, args) => {
         msg.channel.send(`🎅 **Successfully set <#${client.playableChannel}> as the playable channel!** Jingle will ask for your help soon!`)
 
         // run the game command 
-        let gameCmd = client.commands.find(commandKey => commandKey.commandName === 'game')
+        let gameCmd = client.commands.find(commandKey => commandKey.commandName === 'gametest')
         gameCmd.props.stop(client)
         return gameCmd.props.run(client)
     }

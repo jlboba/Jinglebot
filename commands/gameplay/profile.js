@@ -49,7 +49,7 @@ module.exports.run = async (client, msg, args, originalEmbed) => {
         // format the date 
         let date = `${(villager.dateGifted.getMonth() + 1)}/${villager.dateGifted.getDate().toString().padStart(2, '0')}`
         // add the villager to the desc
-        embedOptions.description += `${villager.emoji} · \`${date}\` · **${villager.name}** · ${villager.gift}\n`
+        embedOptions.description += `${villager.emoji} · \`${date}\` · **${villager.name}** · ${villager.gift.name}\n`
     })
 
     // set the embed footer 
