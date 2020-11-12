@@ -162,25 +162,6 @@ module.exports.methods = {
             image: giftVariant.closetImage
         }
     },
-    createGiftImg: async (villImg, giftImg) => {
-        // create the canvas 
-        const canvas = Canvas.createCanvas(1000, 480)
-        const ctx = canvas.getContext('2d')
-
-        // load and draw...
-        // - the villager image 
-        const villager = await Canvas.loadImage(villImg)
-        ctx.drawImage(villager, 100, 100)
-
-        // - the gift box 
-
-        // - the gift 
-        const gift = await Canvas.loadImage(giftImg)
-        ctx.drawImage(gift, 100, 100)
-
-        // buffer the image and return it as a discord attachment
-        return new Discord.MessageAttachment(canvas.toBuffer(), 'gifted-villager.png')
-    },
     createUser: (userID, username, villager) => {
         User.create({
             discordId: userID,
