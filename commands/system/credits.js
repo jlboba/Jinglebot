@@ -18,11 +18,11 @@ module.exports.run = async (client, msg, args) => {
 // CONFIG & HELP
 // ==================
 module.exports.conf = {
-    aliases: ['cred']
+    aliases: ['cred', 'creds', 'cr']
 }
 
 module.exports.help = {
     name: 'credits',
-    shortcuts: 'cred',
+    shortcuts: '`cred` `creds` `cr`',
     details: `See what resources made this bot possible!`
 }

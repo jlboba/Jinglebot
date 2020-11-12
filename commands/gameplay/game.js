@@ -44,7 +44,7 @@ module.exports.run = async (client) => {
         }
 
         // send the embed
-        giftChannel.send({embed: embedOptions, files:[]})
+        giftChannel.send({embed: embedOptions })
             .then(async sentMessage => {
                 let colorChoices = colors.slice()
                 let villColors = []
@@ -110,7 +110,7 @@ module.exports.run = async (client) => {
                             // if found user, and they havent gifted this villager before, end the collector and pass the user's data
                             if(foundUser && !foundUser.gifted.some(g => g.name === villagerData.name)) {
                                 gifter = reactingUser
-                                collector.stop(foundUser)
+                                return collector.stop(foundUser)
                             }
                         })
                     }

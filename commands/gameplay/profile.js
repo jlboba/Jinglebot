@@ -98,11 +98,11 @@ module.exports.run = async (client, msg, args, originalEmbed, foundUser) => {
 // CONFIG & HELP
 // ==================
 module.exports.conf = {
-    aliases: ['pro']
+    aliases: ['pro', 'p']
 }
 
 module.exports.help ={
     name: 'profile',
-    shortcuts: '`pro`',
+    shortcuts: '`pro` `p`',
     details: `Check how many villagers you've gifted and your current rank`
 }
