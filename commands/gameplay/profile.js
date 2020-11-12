@@ -7,7 +7,7 @@ const User = require('../../models/user')
 // ==================
 // RUN
 // ==================
-module.exports.run = async (client, msg, args, originalEmbed) => {
+module.exports.run = async (client, msg, args, originalEmbed, foundUser) => {
     // find user's personality role if any
     let personalityColor = 0x6fe3f2 // if none, color will default to a light blue
     await msg.member.roles.cache.forEach(role => {
@@ -18,7 +18,7 @@ module.exports.run = async (client, msg, args, originalEmbed) => {
     let page = args[0] || 1 
 
     // find the user
-    let userData
+    let userData = foundUser || null
     await User.findOne({ discordId: msg.author.id }, (err, foundUser) => {
         // if error or no user found, return error 
         if(err || !foundUser) {
@@ -31,7 +31,7 @@ module.exports.run = async (client, msg, args, originalEmbed) => {
     })
 
     // if no user data, send the error message 
-    if(userData.error) return msg.channel.send(userData.error)
+    if(userData && userData.error) return msg.channel.send(userData.error)
 
     // set the initial embed 
     const embedOptions = {
@@ -83,10 +83,10 @@ module.exports.run = async (client, msg, args, originalEmbed) => {
                  // go backwards or forwards a page if possible, if not do nothing 
                  if(collectedReaction.emoji.name === '➡️' && userData.gifted.length > (((page - 1) * 10) + 1) + (currentPage.length - 1)) {
                     page += 1 
-                    profileCmd.props.run(client, msg, [page], sentMessage)
+                    profileCmd.props.run(client, msg, [page], sentMessage, userData)
                  } else if(collectedReaction.emoji.name === '⬅️' && page !== 1) { 
                     page -= 1 
-                    profileCmd.props.run(client, msg, [page], sentMessage)
+                    profileCmd.props.run(client, msg, [page], sentMessage, userData)
                  }
             })
         })

@@ -1,7 +1,10 @@
 // ==================
 // DEPENDENCIES
 // ==================
+const Discord = require('discord.js')
 const axios = require('axios')
+
+// - data 
 const User = require('../../models/user')
 const villagers = require('../../data/villagers')
 const colors = require('../../data/colors')
@@ -42,7 +45,7 @@ module.exports.run = async (client) => {
         }
 
         // send the embed
-        giftChannel.send({embed: embedOptions})
+        giftChannel.send({embed: embedOptions, files:[]})
             .then(async sentMessage => {
                 let colorChoices = colors.slice()
                 let villColors = []
@@ -104,7 +107,6 @@ module.exports.run = async (client) => {
                     // select a random gift 
                     await tops.sort(() => .5 - Math.random()).slice(0, 2)
                     let randomGift = this.methods.getGift(tops, randomColor.color)
-                    console.log(randomGift)
 
                     // create the gifted villager object 
                     let giftedVillager = {
@@ -130,7 +132,7 @@ module.exports.run = async (client) => {
                     embedOptions.color = '0x84f542'
                     embedOptions.title = `${randomColor.emoji}  ${villagerData.name} has been gifted, ${villagerData.catchphrase}!`
                     embedOptions.description = `<@${gifter.id}> gifted **${villagerData.name}**: ${randomGift.name}!`
-                    embedOptions.image = { url: randomGift.image }
+                    embedOptions.thumbnail = { url: randomGift.image }
 
                     sentMessage.edit({ embed: embedOptions })
                 })
@@ -159,6 +161,25 @@ module.exports.methods = {
             name: `${favColor} ${gift.name}`,
             image: giftVariant.closetImage
         }
+    },
+    createGiftImg: async (villImg, giftImg) => {
+        // create the canvas 
+        const canvas = Canvas.createCanvas(1000, 480)
+        const ctx = canvas.getContext('2d')
+
+        // load and draw...
+        // - the villager image 
+        const villager = await Canvas.loadImage(villImg)
+        ctx.drawImage(villager, 100, 100)
+
+        // - the gift box 
+
+        // - the gift 
+        const gift = await Canvas.loadImage(giftImg)
+        ctx.drawImage(gift, 100, 100)
+
+        // buffer the image and return it as a discord attachment
+        return new Discord.MessageAttachment(canvas.toBuffer(), 'gifted-villager.png')
     },
     createUser: (userID, username, villager) => {
         User.create({
