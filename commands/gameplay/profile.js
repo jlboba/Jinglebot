@@ -18,13 +18,10 @@ module.exports.run = async (client, msg, args, originalEmbed, foundUser) => {
     let page = args[0] || 1 
 
     // find the user
-    let userData = foundUser || null
+    let userData = foundUser || { error: `❄️ You have not gifted any villagers yet! <@${msg.author.id}>` }
     await User.findOne({ discordId: msg.author.id }, (err, foundUser) => {
-        // if error or no user found, return error 
-        if(err || !foundUser) {
-            console.log('in error  / no found user ')
-            return userData = { error: "❄️ You have not gifted any villagers yet!" }
-        }
+        // if error or no user found, silently return 
+        if(err || !foundUser) return
 
         // otherwise return the user data 
         return userData = foundUser

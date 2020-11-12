@@ -1,7 +1,6 @@
 // ==================
 // DEPENDENCIES
 // ==================
-const Discord = require('discord.js')
 const axios = require('axios')
 
 // - data 
@@ -92,15 +91,33 @@ module.exports.run = async (client) => {
                         reactingUser.giftCooldown = Date.now() + 60000
                     }
 
-                    // when right color is clicked and user is not on cd, stop the collector
+                    // when right color is clicked and user is not on cd
                     if(collectedReaction.emoji.name === randomColor.emoji && (!reactingUser.giftCooldown || reactingUser.giftCooldown < Date.now())) {
-                        gifter = reactingUser
-                        collector.stop()
+                        // find the gifting user 
+                        User.findOne({ discordId: reactingUser.id }, (err, foundUser) => {
+                            // if error, silently return 
+                            if(err) return console.log(err)
+
+                            // if no user, set the reactor as the gifter and end the collector 
+                            if(!foundUser) {
+                                gifter = reactingUser
+                                return collector.stop()
+                            }
+
+                            // if found user, and have gifted this villager  before, silently return 
+                            if(foundUser && foundUser.gifted.some(g => g.name === villagerData.name)) return
+                            
+                            // if found user, and they havent gifted this villager before, end the collector and pass the user's data
+                            if(foundUser && !foundUser.gifted.some(g => g.name === villagerData.name)) {
+                                gifter = reactingUser
+                                collector.stop(foundUser)
+                            }
+                        })
                     }
                 })
 
                 // when collector stops
-                collector.on('end', async () => {
+                collector.on('end', async (collected, existingUser) => {
                     // silently return if no reactors
                     if(!gifter) return 
                     
@@ -116,17 +133,11 @@ module.exports.run = async (client) => {
                         dateGifted: new Date()
                     }
 
-                    // find the gifting user 
-                    User.findOne({ discordId: gifter.id }, (err, foundUser) => {
-                        // if error, return 
-                        if(err) return console.log('in error')
-                        
-                        // if gifter doesn't have an entry yet, create one 
-                        if(!foundUser) this.methods.createUser(gifter.id, `${gifter.username}#${gifter.discriminator}`, giftedVillager)
+                    // if gifter doesn't have an entry yet, create one 
+                    if(!existingUser) this.methods.createUser(gifter.id, `${gifter.username}#${gifter.discriminator}`, giftedVillager)
 
-                        // if gifter has an entry, update their gifted array 
-                        if(foundUser) this.methods.updateUser(foundUser, giftedVillager)
-                    })
+                    // if gifter has an entry, update their gifted array 
+                    if(existingUser) this.methods.updateUser(existingUser, giftedVillager)
 
                     // edit the embed
                     embedOptions.color = '0x84f542'
