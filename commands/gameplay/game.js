@@ -148,7 +148,7 @@ module.exports.run = async (client) => {
                     sentMessage.edit({ embed: embedOptions })
                 })
             })
-    }, 10000);
+    }, process.env.SPAWN_TIME * 60000);
 }
 
 // ==================
