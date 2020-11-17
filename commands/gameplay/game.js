@@ -2,6 +2,7 @@
 // DEPENDENCIES
 // ==================
 const axios = require('axios')
+const config = require('../../config.json')
 
 // - data 
 const User = require('../../models/user')
@@ -26,7 +27,7 @@ module.exports.run = async (client) => {
 
         // api call to get extra villager data and image
         await axios.get(`https://api.nookipedia.com/villagers?name=${villagerData.name}`, {
-            headers: { 'X-API-KEY': process.env.NOOKIPEDIA_KEY }
+            headers: { 'X-API-KEY': config.nookipedia_key }
         }).then(vilData => {
             villagerData.transparentImage = vilData.data[0].image_url
             villagerData.titleColor = vilData.data[0].title_color
@@ -148,7 +149,7 @@ module.exports.run = async (client) => {
                     sentMessage.edit({ embed: embedOptions })
                 })
             })
-    }, process.env.SPAWN_TIME * 60000);
+    }, config.spawn_time * 60000);
 }
 
 // ==================

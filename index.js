@@ -5,7 +5,7 @@
 const Discord = require('discord.js') 
 const mongoose = require('mongoose')
 const fs = require('fs')
-require('dotenv').config()
+const config = require('./config.json')
 
 // DISCORD CLIENT
 const client = new Discord.Client()
@@ -13,7 +13,7 @@ const client = new Discord.Client()
 // ================
 // MONGO CONNECTION
 // ================
-const uri = process.env.MONGO_URI
+const uri = config.mongo_uri
 const db = mongoose.connection
 
 mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true })
@@ -33,7 +33,7 @@ client.on('ready', () => {
     // set activity 
     client.user.setActivity(`with ${guild.memberCount} users! 🦌 `)
     // set prefix 
-    client.prefix = process.env.PREFIX
+    client.prefix = config.prefix
 })
 
 // load all the events
@@ -83,4 +83,4 @@ fs.readdir("./commands/", (err, folders) => {
 // ================
 // LOGIN
 // ================
-client.login(process.env.TOKEN)
+client.login(config.token)
