@@ -21,10 +21,10 @@ _Main gameplay, after j!config enable has been run:_
 
 ## Installation 
 
-Jinglebot was made exclusively for the partnered ACNH Discord server so he is not publicly available to be invited. However, you're free to clone him and host him yourself if you wish. 
+Jinglebot was made exclusively for the partnered ACNH Discord server so it is not publicly available to be invited. However, you're free to clone it and host it yourself if you wish. 
 
 1. `npm i` to install all required packages 
-1. Create an `.env` file with the variables listed in [sample.env] 
+1. Create a `config.json` file with the variables listed in [sample.config.json] 
 1. Invite Jinglebot into your Discord server and run the `j!config enable` command inside whichever channel you want Jinglebot to spawn villagers and allow members to use the Jinglebot commands in 
 
 ## Technologies Used 
