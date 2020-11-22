@@ -82,7 +82,7 @@ module.exports.run = async (client) => {
                     return emojiFilter.includes(reaction.emoji.name) && !user.bot
                 }
 
-                // reaction collector - will wait up to 60 seconds 
+                // reaction collector - will wait up to 120 seconds 
                 const collector = sentMessage.createReactionCollector(filter, { time: 120000 })
 
                 // when someone reacts 
