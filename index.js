@@ -34,6 +34,8 @@ client.on('ready', () => {
     client.user.setActivity(`with ${guild.memberCount} users! 🦌 `)
     // set prefix 
     client.prefix = config.prefix
+    // set botowner  
+    client.bot_owner = config.owner_id
 })
 
 // load all the events

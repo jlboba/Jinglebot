@@ -16,7 +16,7 @@ module.exports.run = (client, msg, args) => {
                 },
                 {
                     "name": 'System',
-                    "value": '· `credits` · see what made this bot possible\n'
+                    "value": '· `colors` · see the color - emoji key\n· `credits` · see what made this bot possible'
                 }
             ]
         }

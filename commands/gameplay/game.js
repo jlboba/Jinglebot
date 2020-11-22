@@ -83,7 +83,7 @@ module.exports.run = async (client) => {
                 }
 
                 // reaction collector - will wait up to 60 seconds 
-                const collector = sentMessage.createReactionCollector(filter, { time: 60000 })
+                const collector = sentMessage.createReactionCollector(filter, { time: 120000 })
 
                 // when someone reacts 
                 collector.on('collect', async (collectedReaction, reactingUser) => {
@@ -102,7 +102,7 @@ module.exports.run = async (client) => {
                             // if no user, set the reactor as the gifter and end the collector 
                             if(!foundUser) {
                                 gifter = reactingUser
-                                return collector.stop()
+                                return collector.stop(false)
                             }
 
                             // if found user, and have gifted this villager  before, silently return 
@@ -135,10 +135,14 @@ module.exports.run = async (client) => {
                     }
 
                     // if gifter doesn't have an entry yet, create one 
-                    if(!existingUser) this.methods.createUser(gifter.id, `${gifter.username}#${gifter.discriminator}`, giftedVillager)
+                    if(!existingUser) {
+                        this.methods.createUser(gifter.id, `${gifter.username}#${gifter.discriminator}`, giftedVillager)
+                    }
 
                     // if gifter has an entry, update their gifted array 
-                    if(existingUser) this.methods.updateUser(existingUser, giftedVillager)
+                    if(existingUser) {
+                        this.methods.updateUser(existingUser, giftedVillager)
+                    }
 
                     // edit the embed
                     embedOptions.color = '0x84f542'

@@ -49,8 +49,13 @@ module.exports.run = async (client, msg, args, originalEmbed, foundTop, original
     // find the user that called the leaderboard command if they're not in the top
     if(!asker) {
         await User.findOne({ discordId: msg.author.id }, (err, foundUser) => {
-            let askerRank = `\`\`\`md\n None |   ${foundUser.gifted.length || 0}   | ${foundUser.username} (You)\`\`\``
-            embedOptions.description += askerRank
+            // if error or no found user, silently return 
+            if(err || !foundUser) return 
+            // if there's a found user and they have gifts 
+            if(foundUser && foundUser.gifted) {
+                let askerRank = `\`\`\`md\n None |   ${foundUser.gifted.length || 0}   | ${foundUser.username} (You)\`\`\``
+                embedOptions.description += askerRank
+            }
         })
     } else {
         let askerRank = `\`\`\`md\n ${asker.rank}.  |   ${asker.dbInfo.gifted.length || 0}   | ${asker.dbInfo.username} (You) \`\`\``
