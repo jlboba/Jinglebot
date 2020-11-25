@@ -36,8 +36,8 @@ module.exports.run = async (client) => {
         // create the embed 
         embedOptions = {
             color: `0x${villagerData.titleColor}`,
-            title: `🎁  ${villagerData.name} wants a gift, ${villagerData.catchphrase}!`,
-            description: `Jingle's not sure what kind of gift **${villagerData.name} the ${villagerData.personality} ${villagerData.species}** wants.\n Can you help him? React to the color you think **${villagerData.name}** likes best!`,
+            title: `🎁  ${villagerData.name} needs winter clothing, ${villagerData.catchphrase}!`,
+            description: `Jingle needs help dressing **${villagerData.name} the ${villagerData.personality} ${villagerData.species}** for winter.\n Can you help him? React to the color you think **${villagerData.name}** likes best!`,
             image: {
                 url: villagerData.transparentImage
             },
@@ -119,8 +119,14 @@ module.exports.run = async (client) => {
 
                 // when collector stops
                 collector.on('end', async (collected, existingUser) => {
-                    // silently return if no reactors
-                    if(!gifter) return 
+                    // edit the embed to say the villager wasn't gifted if no correct reactors after 2 mins
+                    if(!gifter) {
+                        embedOptions.color = '0xE92F38'
+                        embedOptions.title = `${randomColor.emoji} No one guessed ${villagerData.name}'s favorite color correctly, ${villagerData.catchphrase}`
+                        embedOptions.description = `${villagerData.name} was not gifted in time, but that's okay. Better luck next time!`
+                        embedOptions.image = null
+                        return sentMessage.edit({ embed: embedOptions })
+                    } 
                     
                     // select a random gift 
                     await tops.sort(() => .5 - Math.random()).slice(0, 2)
@@ -183,7 +189,10 @@ module.exports.methods = {
             discordId: userID,
             username: username,
             gifted: [ villager ]
-        }, (err, createdUser) => { return createdUser })
+        }, (err, createdUser) => { 
+            if(err) return 
+            return createdUser
+         })
     },
     updateUser: (foundUser, villager) => {
         foundUser.gifted.unshift(villager)

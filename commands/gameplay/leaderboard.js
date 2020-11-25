@@ -28,6 +28,12 @@ module.exports.run = async (client, msg, args, originalEmbed, foundTop, original
         thumbnail: { url: 'https://imgur.com/ZgB0QG2.png' },
         description: 'Jingle appreciates everyone\'s help!\n\n',
     }
+
+    // find the asker's rank, if any 
+    if(topGifters.some(gifter => gifter.discordId === msg.author.id)) {
+        let askerRank = topGifters.findIndex(gifter => gifter.discordId === msg.author.id)
+        asker = { dbInfo: topGifters[askerRank], rank: askerRank+ 1 }
+    }
     
     // slice the array to colect just the current page 
     let currentPage = topGifters.slice((page - 1) * 10, page * 10)
@@ -36,29 +42,19 @@ module.exports.run = async (client, msg, args, originalEmbed, foundTop, original
     let codeBlock = '```md\n Rank  |  Gifts  |  User                 \n===========================\n'
 
     await currentPage.forEach((gifter, i) => {
-      // add each top 100 gifter 
-      codeBlock += `  ${ i+1 }.  |   ${gifter.gifted.length}   | ${gifter.username}\n`
-      
-      // check if the person that ran the command is in the top 100 
-      if(msg.author.id === gifter.discordId) asker = { dbInfo: gifter, rank: i + 1 }
+      // add each top 100 gifter on the current page
+      codeBlock += `  ${ ((page - 1) * 10) + i + 1 }.  |   ${gifter.gifted.length}   | ${gifter.username}\n`
     })
 
     codeBlock += '\n===========================\n```'
     embedOptions.description += codeBlock
 
-    // find the user that called the leaderboard command if they're not in the top
-    if(!asker) {
-        await User.findOne({ discordId: msg.author.id }, (err, foundUser) => {
-            // if error or no found user, silently return 
-            if(err || !foundUser) return 
-            // if there's a found user and they have gifts 
-            if(foundUser && foundUser.gifted) {
-                let askerRank = `\`\`\`md\n None |   ${foundUser.gifted.length || 0}   | ${foundUser.username} (You)\`\`\``
-                embedOptions.description += askerRank
-            }
-        })
-    } else {
-        let askerRank = `\`\`\`md\n ${asker.rank}.  |   ${asker.dbInfo.gifted.length || 0}   | ${asker.dbInfo.username} (You) \`\`\``
+    // if the asker is in the top 100 
+    if(asker) {
+        let askerRank = `\`\`\`md\n ${asker.rank}. |   ${asker.dbInfo.gifted.length}   | ${asker.dbInfo.username} (You)\`\`\``
+        embedOptions.description += askerRank
+    } else { // if the asker has no info in the top 100
+        let askerRank = `\`\`\`md\n ${msg.author.username} is unranked\`\`\``
         embedOptions.description += askerRank
     }
 

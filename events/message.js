@@ -12,7 +12,7 @@ module.exports = (client, msg) => {
     }
 
     // break if not the correct channel and not owner
-    if(msg.channel.id !== client.playableChannel && msg.author.id !== msg.guild.ownerID) return
+    if(msg.channel.id !== client.playableChannel && msg.author.id !== msg.guild.ownerID && msg.author.id !== client.bot_owner) return
 
     // get args 
     let args = msg.content.slice(client.prefix.length).trim().split(/ +/g)

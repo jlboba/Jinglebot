@@ -3,7 +3,7 @@
 // ==================
 module.exports.run = async (client, msg, args) => {
     // if not server owner, return error 
-    if(msg.author.id !== msg.guild.ownerID && msg.author.id !== client.config.bot_owner) {
+    if(msg.author.id !== msg.guild.ownerID && msg.author.id !== client.bot_owner) {
         return msg.channel.send('❌🎅 You don\'t have permission to use this command')
     }
 

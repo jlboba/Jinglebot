@@ -6,7 +6,7 @@ module.exports.run = (client, msg, args) => {
     const embedOptions = {
         color: `0x1c612b`,
         title: `🎁  Emoji Color Key`,
-        description: `The favorite colors assigned to each villager is based on their actual in-game favorite  colors. Below is the emoji key to find out which emoji corresponds to what color!`,
+        description: `The favorite colors assigned to each villager is based on their actual in-game favorite colors. Below is the emoji key to find out which emoji corresponds to what color!`,
         fields: [
             {
                 "name": "Beige",
